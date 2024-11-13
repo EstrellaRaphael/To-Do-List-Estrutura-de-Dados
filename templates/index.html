@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToDoList</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.5.0/dist/semantic.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.5.0/dist/semantic.min.js"></script>
+</head>
+
+<body>
+    <div style="margin-top: 50px;" class="ui container">
+
+        <h1 class="ui center aligned header">Lista de Tarefas</h1>
+        
+        <form action="/adicionar" , method="post" class="ui form">
+            <div class="field">
+                <label for="nomeTarefa">Tarefa:</label>
+                <input type="text" name="nomeTarefa" placeholder="Digite a tarefa">
+                <br>
+                <button type="submit" class="ui blue button">Adicionar</button>
+                <a class="ui green button" href="tarefasConcluidas">Ver tarefas concluídas</a>
+
+            </div>
+        </form>
+
+        <hr>
+
+        <form action="/concluirMaisAntiga" method="get">
+            <button class="ui orange button" type="submit">Concluir tarefa mais antiga</button>
+        </form>
+        
+        {% for tarefas in listaTarefas %}
+        <div class="ui segment">
+            <p class="ui big header"> {{tarefas.id}} | {{tarefas.titulo}}</p>
+            <p>Criado em: {{ tarefas.criadoEm.strftime('%d-%m-%Y %H:%M') }}</p>
+            
+            {% if tarefas.completa == False %}
+            <span class="ui gray label">Incompleta</span>
+            {% else %}
+            <span class="ui green label">Completa</span>
+            {% endif %}
+            
+            <a class="ui blue button" href="/concluir/{{tarefas.id}}">Concluir</a>
+            <a class="ui red button" href="/deletar/{{tarefas.id}}">Deletar</a>
+            
+        </div>
+        {% endfor %}
+    </div>
+
+</body>
+
+</html>
