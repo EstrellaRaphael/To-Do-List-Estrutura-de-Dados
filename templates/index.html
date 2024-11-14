@@ -14,38 +14,47 @@
     <div style="margin-top: 50px;" class="ui container">
 
         <h1 class="ui center aligned header">Lista de Tarefas</h1>
-        
-        <form action="/adicionar" , method="post" class="ui form">
+
+        <!-- Formulário para adicionar nova tarefa -->
+        <form action="/adicionar" method="post" class="ui form">
             <div class="field">
                 <label for="nomeTarefa">Tarefa:</label>
-                <input type="text" name="nomeTarefa" placeholder="Digite a tarefa">
+                <input type="text" name="nomeTarefa" placeholder="Digite a tarefa" required>
                 <br>
                 <button type="submit" class="ui blue button">Adicionar</button>
-                <a class="ui green button" href="tarefasConcluidas">Ver tarefas concluídas</a>
-
+                <a class="ui green button" href="/tarefasConcluidas">Ver tarefas concluídas</a>
             </div>
         </form>
 
         <hr>
 
-        <form action="/concluirMaisAntiga" method="get">
-            <button class="ui orange button" type="submit">Concluir tarefa mais antiga</button>
-        </form>
-        
-        {% for tarefas in listaTarefas %}
+        <!-- Exibição de mensagens de erro (flash) -->
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="ui negative message">
+            <ul class="list">
+                {% for message in messages %}
+                <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <!-- Tarefas pendentes -->
+        {% for tarefa in listaTarefas %}
         <div class="ui segment">
-            <p class="ui big header"> {{tarefas.id}} | {{tarefas.titulo}}</p>
-            <p>Criado em: {{ tarefas.criadoEm.strftime('%d-%m-%Y %H:%M') }}</p>
-            
-            {% if tarefas.completa == False %}
-            <span class="ui gray label">Incompleta</span>
+            <p class="ui big header">{{ tarefa.titulo }}</p>
+            <p>Criado em: {{ tarefa.criadoEm.strftime('%d-%m-%Y %H:%M') }}</p>
+
+            <!-- Botão para concluir tarefa -->
+            {% if loop.index0 == 0 %}
+            <a class="ui blue button" href="/concluir/{{ loop.index0 }}">Concluir</a>
             {% else %}
-            <span class="ui green label">Completa</span>
+            <button class="ui blue button" disabled>Concluir (Siga a ordem FIFO)</button>
             {% endif %}
-            
-            <a class="ui blue button" href="/concluir/{{tarefas.id}}">Concluir</a>
-            <a class="ui red button" href="/deletar/{{tarefas.id}}">Deletar</a>
-            
+            <!-- Botão para deletar tarefa -->
+            <a class="ui red button" href="/deletar_concluida/{{ tarefa.id }}">Deletar</a>
         </div>
         {% endfor %}
     </div>

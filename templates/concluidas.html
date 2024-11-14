@@ -11,15 +11,41 @@
 
 <body>
     <div style="margin-top: 50px;" class="ui container">
-        <h1 class="ui center aligned header">Tarefas concluídas</h1>
+        <h1 class="ui center aligned header">Tarefas Concluídas</h1>
 
         <h2>Histórico</h2>
-        {% for tarefas in tarefasConcluidas %}
+
+        <!-- Exibição de mensagens de erro (flash) -->
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="ui negative message">
+            <ul class="list">
+                {% for message in messages %}
+                <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        {% if tarefasConcluidas %}
+        {% for tarefa in tarefasConcluidas %}
         <div class="ui segment">
-            <p class="ui big header">{{ tarefas.titulo }}</p>
-            <p>Concluida em: {{ tarefas.concluidoEm.strftime('%d-%m-%Y %H:%M') }}</p>
+            <p class="ui big header">{{ tarefa.titulo }}</p>
+            <p>Criado em: {{ tarefa.criadoEm.strftime('%d-%m-%Y %H:%M') }}</p>
+            <p>Concluído em: {{ tarefa.concluidoEm.strftime('%d-%m-%Y %H:%M') }}</p>
+
+            <!-- Botão para excluir tarefa concluída, com base no ID -->
+            <a class="ui red button" href="/deletar_concluida/{{ tarefa.id }}">Excluir</a>
         </div>
         {% endfor %}
+        {% else %}
+        <div class="ui message">
+            <p>Nenhuma tarefa concluída encontrada.</p>
+        </div>
+        {% endif %}
+
+        <a href="/" class="ui blue button">Voltar para a lista de tarefas</a>
     </div>
 </body>
 
