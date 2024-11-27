@@ -15,7 +15,7 @@
         <h1 class="text-center mb-4">Lista de Tarefas</h1>
 
         <!-- Botão para alternar entre os temas -->
-        <button id="theme-toggle" class="btn btn-secondary position-absolute" style="top: 10px; right: 10px;">
+        <button id="botaoAlterarTema" class="btn btn-secondary position-absolute" style="top: 10px; right: 10px;">
             Modo Escuro
         </button>
 
@@ -77,8 +77,31 @@
                 <button class="btn btn-primary" disabled>Concluir (Siga a ordem FIFO)</button>
                 {% endif %}
 
+                <!--confirmar exclusão -->
+                <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmar Exclusão</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Fechar"></button>
+                            </div>
+                            <div class="modal-body">
+                                Tem certeza de que deseja excluir esta tarefa?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary"
+                                    data-bs-dismiss="modal">Cancelar</button>
+                                <a href="#" id="deleteConfirmButton" class="btn btn-danger">Deletar</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Botão para deletar tarefa -->
-                <a class="btn btn-danger ms-3" href="/deletar_pendente/{{ tarefa['id'] }}">Deletar</a>
+                <a class="btn btn-danger ms-3" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal"
+                    data-id="{{ tarefa['id'] }}">Deletar</a>
             </div>
         </div>
         {% else %}
@@ -88,24 +111,7 @@
         {% endfor %}
     </div>
 
-    <script>
-        // Verifica a preferência de tema do sistema
-        const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)").matches;
-
-        // Alterna o tema conforme a preferência
-        if (prefersDarkScheme) {
-            document.body.setAttribute("data-bs-theme", "dark");
-            document.getElementById("theme-toggle").textContent = "Modo Claro";
-        }
-
-        // Alterna entre os temas quando o botão é clicado
-        document.getElementById("theme-toggle").addEventListener("click", () => {
-            const currentTheme = document.body.getAttribute("data-bs-theme");
-            const newTheme = currentTheme === "light" ? "dark" : "light";
-            document.body.setAttribute("data-bs-theme", newTheme);
-            document.getElementById("theme-toggle").textContent = newTheme === "dark" ? "Modo Claro" : "Modo Escuro";
-        });
-    </script>
+    <script src="../static/js/script.js"></script>
 
 </body>
 
