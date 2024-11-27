@@ -64,6 +64,7 @@ class TarefasPendentes(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     titulo = db.Column(db.String(100))
     criadoEm = db.Column(db.DateTime, default=datetime.utcnow)
+    categoria = db.Column(db.String(50))
 
 
 class TarefasConcluidas(db.Model):
@@ -98,11 +99,36 @@ def index():
 @app.route("/adicionar", methods=["POST"])
 def adicionar():
     nome_tarefa = request.form.get("nomeTarefa")
-    nova_tarefa = TarefasPendentes(titulo=nome_tarefa, criadoEm=datetime.utcnow())
+    categoria = request.form.get("categoria")
+    nova_tarefa = TarefasPendentes(titulo=nome_tarefa, criadoEm=datetime.utcnow(), categoria=categoria)
     db.session.add(nova_tarefa)
     db.session.commit()
     carregar_tarefas_pendentes()  # Atualiza a fila
     return redirect(url_for("index"))
+
+# Rota de filtro para tarefas pendentes
+@app.route('/filtro/<categoria>', methods=['GET'])
+def filtro(categoria):
+    if categoria == "Todas":
+        listaTarefas = TarefasPendentes.query.all()  # Mostrar todas as tarefas
+    else:
+        listaTarefas = TarefasPendentes.query.filter_by(categoria=categoria).all()  # Filtra pela categoria específica
+
+    return render_template('index.html', listaTarefas=listaTarefas)
+
+
+
+# Rota para filtrar tarefas pendentes por categoria
+@app.route("/filtro/<categoria>")
+def filtrar_por_categoria(categoria):
+    tarefas_filtradas = TarefasPendentes.query.filter_by(categoria=categoria).all()
+    fila_tarefas.primeiro = None  # Limpa a fila
+    for tarefa in tarefas_filtradas:
+        fila_tarefas.enqueue(
+            {"id": tarefa.id, "titulo": tarefa.titulo, "criadoEm": tarefa.criadoEm}
+        )
+    return render_template("index.html", listaTarefas=fila_tarefas.get_all_tasks())
+
 
 
 # Rota para concluir uma tarefa seguindo o conceito FIFO
