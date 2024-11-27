@@ -1,5 +1,3 @@
 .venv
 .git
-./instance
-/instance
-instance
+instance/
