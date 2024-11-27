@@ -53,7 +53,8 @@
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary"
                                     data-bs-dismiss="modal">Cancelar</button>
-                                <a href="/deletar_concluida/{{ tarefa['id'] }}" id="deleteConfirmButton" class="btn btn-danger">Deletar</a>
+                                <a href="/deletar_concluida/{{ tarefa['id'] }}" id="deleteConfirmButton"
+                                    class="btn btn-danger">Deletar</a>
                             </div>
                         </div>
                     </div>
@@ -61,7 +62,7 @@
 
                 <!-- Botão para excluir tarefa concluída, com base no ID -->
                 <a class="btn btn-danger ms-3" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal"
-                    data-id="{{ tarefa['id'] }}">Deletar</a>
+                    data-id="{{ tarefa['id'] }}" href="/deletar_concluida/{{ tarefa['id'] }}">Deletar</a>
             </div>
         </div>
         {% endfor %}
