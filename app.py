@@ -22,9 +22,11 @@ class Fila:
     def __repr__(self):
         return f"[{self.primeiro}]"
 
+    # Verifica se a fila está vazia
     def is_empty(self):
         return self.primeiro is None
 
+    # Adiciona um novo elemento ao final da fila
     def enqueue(self, dado):
         novo_nodo = Nodo(dado)
         if self.is_empty():
@@ -34,6 +36,7 @@ class Fila:
             self.ultimo.proximo = novo_nodo
             self.ultimo = novo_nodo
 
+    # Remove o primeiro elemento da fila
     def dequeue(self):
         if self.is_empty():
             return None
@@ -43,6 +46,7 @@ class Fila:
             self.ultimo = None
         return dado
 
+    #    # Retorna todas as tarefas na fila como uma lista
     def get_all_tasks(self):
         tasks = []
         current = self.primeiro
@@ -52,29 +56,34 @@ class Fila:
         return tasks
 
 
-# Configuração da aplicação Flask
+# Configuração inicial da aplicação Flask
 app = Flask(__name__)
-app.secret_key = "supersecretkey"  # Necessário para mensagens de flash
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.secret_key = "supersecretkey"  # Chave secreta para mensagens de flash
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite"  # Banco de dados SQLite
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False  # Desativa avisos de modificação
 db = SQLAlchemy(app)
 
+
 # Modelos do banco de dados
+# Tarefas Pendentes: Tabela que armazena as tarefas que ainda não foram concluídas
 class TarefasPendentes(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    titulo = db.Column(db.String(100))
-    criadoEm = db.Column(db.DateTime, default=datetime.utcnow)
-    categoria = db.Column(db.String(50))
+    titulo = db.Column(db.String(100))  # Título da tarefa
+    criadoEm = db.Column(db.DateTime, default=datetime.utcnow)  # Data de criação
+    categoria = db.Column(db.String(50))  # Categoria da tarefa
 
 
+# Tarefas Concluídas: Tabela que armazena as tarefas já concluídas
 class TarefasConcluidas(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    titulo = db.Column(db.String(100))
-    criadoEm = db.Column(db.DateTime)
-    concluidoEm = db.Column(db.DateTime, default=datetime.utcnow)
+    titulo = db.Column(db.String(100))  # Título da tarefa
+    criadoEm = db.Column(db.DateTime)  # Data de criação
+    concluidoEm = db.Column(db.DateTime, default=datetime.utcnow)  # Data de conclusão
+    categoria = db.Column(db.String(50))  # Categoria da tarefa
 
 
-# Fila de tarefas pendentes
+
+# Instância da fila para armazenar as tarefas pendentes
 fila_tarefas = Fila()
 
 
@@ -84,7 +93,7 @@ def carregar_tarefas_pendentes():
     tarefas_pendentes = TarefasPendentes.query.order_by(TarefasPendentes.criadoEm).all()
     for tarefa in tarefas_pendentes:
         fila_tarefas.enqueue(
-            {"id": tarefa.id, "titulo": tarefa.titulo, "criadoEm": tarefa.criadoEm}
+            {"id": tarefa.id, "titulo": tarefa.titulo, "criadoEm": tarefa.criadoEm, "categoria": tarefa.categoria}
         )
 
 
@@ -100,35 +109,26 @@ def index():
 def adicionar():
     nome_tarefa = request.form.get("nomeTarefa")
     categoria = request.form.get("categoria")
-    nova_tarefa = TarefasPendentes(titulo=nome_tarefa, criadoEm=datetime.utcnow(), categoria=categoria)
+    nova_tarefa = TarefasPendentes(
+        titulo=nome_tarefa, criadoEm=datetime.utcnow(), categoria=categoria
+    )
     db.session.add(nova_tarefa)
     db.session.commit()
     carregar_tarefas_pendentes()  # Atualiza a fila
     return redirect(url_for("index"))
 
+
 # Rota de filtro para tarefas pendentes
-@app.route('/filtro/<categoria>', methods=['GET'])
+@app.route("/filtro/<categoria>", methods=["GET"])
 def filtro(categoria):
     if categoria == "Todas":
         listaTarefas = TarefasPendentes.query.all()  # Mostrar todas as tarefas
     else:
-        listaTarefas = TarefasPendentes.query.filter_by(categoria=categoria).all()  # Filtra pela categoria específica
+        listaTarefas = TarefasPendentes.query.filter_by(
+            categoria=categoria
+        ).all()  # Filtra pela categoria específica
 
-    return render_template('index.html', listaTarefas=listaTarefas)
-
-
-
-# Rota para filtrar tarefas pendentes por categoria
-@app.route("/filtro/<categoria>")
-def filtrar_por_categoria(categoria):
-    tarefas_filtradas = TarefasPendentes.query.filter_by(categoria=categoria).all()
-    fila_tarefas.primeiro = None  # Limpa a fila
-    for tarefa in tarefas_filtradas:
-        fila_tarefas.enqueue(
-            {"id": tarefa.id, "titulo": tarefa.titulo, "criadoEm": tarefa.criadoEm}
-        )
-    return render_template("index.html", listaTarefas=fila_tarefas.get_all_tasks())
-
+    return render_template("index.html", listaTarefas=listaTarefas)
 
 
 # Rota para concluir uma tarefa seguindo o conceito FIFO
@@ -139,7 +139,7 @@ def concluir(task_index):
         tarefa = fila_tarefas.dequeue()
         if tarefa:
             tarefa_concluida = TarefasConcluidas(
-                titulo=tarefa["titulo"], criadoEm=tarefa["criadoEm"]
+                titulo=tarefa["titulo"], criadoEm=tarefa["criadoEm"], categoria=tarefa["categoria"]
             )
             db.session.add(tarefa_concluida)
             tarefa_pendente = TarefasPendentes.query.filter_by(id=tarefa["id"]).first()
@@ -185,6 +185,6 @@ def tarefasConcluidas():
 # Inicialização da aplicação
 if __name__ == "__main__":
     with app.app_context():
-        db.create_all()
+        db.create_all()  # Cria as tabelas no banco de dados, caso não existam
         carregar_tarefas_pendentes()  # Carrega as tarefas na inicialização
     app.run(debug=True)
